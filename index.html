@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html id="aaaaaa">
+<head>
+<meta charset="utf-8">
+<title>set cursor position</title>
+<script src="js/jquery-1.7.2.js"></script>
+<script src="js/sea.js"></script>
+<!--[if IE]><script src="js/excanvas.js"></script><![endif]-->
+<style>
+	*{margin: 0;padding: 0;font:12px/20px 'arial';}
+	body{display: block;position: relative;}
+	.t{background:red;}
+</style>
+</head>
+<body>
+<p class="a">
+	<span class="cc">aa</span>
+</p>
+<p class="a">
+	<span class="cc">aa</span>
+</p>
+<input id="wwwwww" type="text" value="sss" />
+<div id="demo"></div>
+<script>
+var obj = document.getElementById('wwwwww');
+console.log('onreset' in obj);
+
+
+if(!console){
+	var console={};
+	console.log=function(){
+		var args = [].slice.apply(arguments);
+		alert(args)
+	}
+}
+$(function(){
+	//console.log("sfsdfs");
+});
+
+var demo = document.getElementById('demo');
+demo.setAttribute("className", "t");
+demo.innerHTML = '   <a class="t" href="/a" style="top:10px;opacity:.55;"></a><input checked value="" type=\'checkbox\'/><select><optgroup><option>ss</option></optgroup></select>';
+var a = demo.getElementsByTagName("a")[0],
+	support={},
+	div = document.createElement('div'),
+	input = demo.getElementsByTagName('input')[0],
+	opt = demo.getElementsByTagName('option')[0],
+	select = document.createElement( "select" ),
+	opt = select.appendChild( document.createElement("option") );
+
+	input = document.createElement("input");
+	input.value = "t";
+	input.setAttribute("type", "radio");
+	input.setAttribute("checked", "checked");
+	//input.checked = true;
+	input.setAttribute( "name", "t" );
+	div.appendChild( input );
+	fragment = document.createDocumentFragment();
+	fragment.appendChild( div.lastChild );
+
+	//document.body.appendChild(input)
+	//console.log(input.checked);
+</script>
+<script src="js/style.js"></script>
+</body> 
+</html>
