@@ -1132,7 +1132,9 @@ jQuery.extend({
 			// 如果exec为true的话，则执行函数
 			exec = pass === undefined && jQuery.isFunction( value );
 
+			// 如果关键字为空则 bulk 为true
 			if ( bulk ) {
+
 				// Bulk operations only iterate when executing function values
 				if ( exec ) {
 					exec = fn;
@@ -1873,6 +1875,7 @@ jQuery.extend({
 });
 
 // 用于浏览器兼容型测试
+// 创建自运行闭包
 jQuery.support = (function() {
 
 	var support,
@@ -1891,6 +1894,7 @@ jQuery.support = (function() {
 		documentElement = document.documentElement;
 
 	// Preliminary tests
+	// 初步检测
 	div.setAttribute("className", "t");
 	div.innerHTML = "   <link/><table></table><a href='/a' style='top:1px;float:left;opacity:.55;'>a</a><input type='checkbox'/>";
 
@@ -1912,6 +1916,7 @@ jQuery.support = (function() {
 	opt = select.appendChild( document.createElement("option") );
 	input = div.getElementsByTagName( "input" )[ 0 ];
 
+	// 能否正常显示某属性
 	support = {
 		// IE strips leading whitespace when .innerHTML is used
 		// ie6/7/8 会在innerHTML添加内容时去掉左侧的空白
@@ -1919,8 +1924,9 @@ jQuery.support = (function() {
 
 		// Make sure that tbody elements aren't automatically inserted
 		// IE will insert them into empty tables
-		// ie6/7 为自动为空的table添加tbody标签
+		// ie6/7 自动为空的table添加tbody标签
 		// 如果里面有内容的话所有浏览器都会自动加上tbody
+		// 但不影响dom查找顺序
 		tbody: !div.getElementsByTagName("tbody").length,
 
 		// Make sure that link elements get serialized correctly by innerHTML
@@ -1931,12 +1937,12 @@ jQuery.support = (function() {
 		// Get the style information from getAttribute
 		// (IE uses .cssText instead)
 		// ie6/7/8 无法在style属性里获取top值
-		// 如果用 .style.cssText 来替代。不过ie6/7/8 取出的属性为大写(TOP:22px)
+		// 要用 .style.cssText 来替代。不过ie6/7/8 取出的属性为大写(TOP:22px)
 		style: /top/.test( a.getAttribute("style") ),
 
 		// Make sure that URLs aren't manipulated
 		// (IE normalizes it by default)
-		// ie6/7 中相对路径会自动补全(file://G:/a)
+		// ie6/7 中相对路径会自动补全成绝对路径(file://G:/a)
 		hrefNormalized: ( a.getAttribute("href") === "/a" ),
 
 		// Make sure that element opacity exists
@@ -1953,7 +1959,7 @@ jQuery.support = (function() {
 		// Make sure that if no value is specified for a checkbox
 		// that it defaults to "on".
 		// (WebKit defaults to "" instead)
-		// 复选框没有value的话默认值为on, 但webkit某些版本为空
+		// 复选框/单选框默认值为on, 但webkit某些版本为空
 		checkOn: ( input.value === "on" ),
 
 		// Make sure that a selected-by-default option has a working selected property.
@@ -1966,25 +1972,41 @@ jQuery.support = (function() {
 		getSetAttribute: div.className !== "t",
 
 		// Tests for enctype support on a form(#6743)
-		// 测试enctype在form中的支持情况
+		// 测试enctype在form中的支持情况, 即有没有默认编码方式
+		// !!强行转为bool
 		enctype: !!document.createElement("form").enctype,
 
 		// Makes sure cloning an html5 element does not cause problems
 		// Where outerHTML is undefined, this still works
 		// 确保克隆一个html5 tag在outerHTML不存在时仍可以工作不会产生问题
-		// ie6/7/8 为true 其它都是<nav></nav>
+		// ie6/7/8 为"<:nav></:nav>" 其它都是<nav></nav>
 		html5Clone: document.createElement("nav").cloneNode( true ).outerHTML !== "<:nav></:nav>",
 
 		// Will be defined later
 		// 稍后定义
+
+		// 事件是否支持冒泡
 		submitBubbles: true,
 		changeBubbles: true,
 		focusinBubbles: false,
+
+		// 能否删除node的属性或者方法,ie6/7/8不可以, 还会报错
 		deleteExpando: true,
+
+		// 当copy节点时不能copy事件,但是ie6/7/8 可以
 		noCloneEvent: true,
+
+		// 是否需要借助hasLayout实现inline-block
 		inlineBlockNeedsLayout: false,
+
+		// 即没有设置overflow:hidden的情况下内部元素是否能撑宽外层元素
+		// ie6可以
 		shrinkWrapBlocks: false,
+
+		// 2011年2月之前, webkit在内部元素宽度小于外部且margin-right:0的情况下会有默认值
 		reliableMarginRight: true,
+
+		// margin值%是否能转化为px
 		pixelMargin: true
 	};
 
@@ -2040,7 +2062,7 @@ jQuery.support = (function() {
 		div.attachEvent( "onclick", function() {
 			// Cloning a node shouldn't copy over any
 			// bound event handlers (IE does this)
-			// 一般情况下是不能copy事件函数的，但是ie可以
+			// 一般情况下是不能copy事件函数的，但是ie6/7/8 可以
 			// 如果是node.onclick=fn，这种方法的话都不可以复制
 			support.noCloneEvent = false;
 		});
@@ -2064,6 +2086,8 @@ jQuery.support = (function() {
 
 	div.appendChild( input );
 	fragment = document.createDocumentFragment();
+
+	// 把input加到fragment中
 	fragment.appendChild( div.lastChild );
 
 	// WebKit doesn't clone checked state correctly in fragments
@@ -2084,16 +2108,28 @@ jQuery.support = (function() {
 	// are used, namely in IE. Short-circuiting here helps us to
 	// avoid an eval call (in setAttribute) which can cause CSP
 	// to go haywire. See: https://developer.mozilla.org/en/Security/CSP
+
+	// 在ie/opera中运行判断
 	if ( div.attachEvent ) {
 		for ( i in {
 			submit: 1,
 			change: 1,
 			focusin: 1
 		}) {
+
+			// 在ie里事件要带on的，所以添加
 			eventName = "on" + i;
+
+			// 查看是否支持此事件
 			isSupported = ( eventName in div );
+
+			// 在it6/7/8 和 ff某些版本某些事件只能在特定元素上才有
+			// 所以要用以下方法规避这情况
+			// eg: onreset 只能在 input上有，div上没有
 			if ( !isSupported ) {
 				div.setAttribute( eventName, "return;" );
+
+				// ie6/7/8 typeof为string, 其它返回为function
 				isSupported = ( typeof div[ eventName ] === "function" );
 			}
 			support[ i + "Bubbles" ] = isSupported;
@@ -2103,9 +2139,12 @@ jQuery.support = (function() {
 	fragment.removeChild( div );
 
 	// Null elements to avoid leaks in IE
+	// 清空，防止ie内存泄露
 	fragment = select = opt = div = input = null;
 
 	// Run tests that need a body at doc ready
+	// 当文档加载完成作测试
+	// 主要测试offset/offsetTop的值
 	jQuery(function() {
 		var container, outer, inner, table, td, offsetSupport,
 			marginDiv, conMarginTop, style, html, positionTopLeftWidthHeight,
@@ -2113,7 +2152,9 @@ jQuery.support = (function() {
 			body = document.getElementsByTagName("body")[0];
 
 		if ( !body ) {
+
 			// Return for frameset docs that don't have a body
+			// 框架文档没有body，就直接返回
 			return;
 		}
 
@@ -2121,16 +2162,25 @@ jQuery.support = (function() {
 		paddingMarginBorder = "padding:0;margin:0;border:";
 		positionTopLeftWidthHeight = "position:absolute;top:0;left:0;width:1px;height:1px;";
 		paddingMarginBorderVisibility = paddingMarginBorder + "0;visibility:hidden;";
+
+		// style = position:absolute;top:0;left:0;width:1px;height:1px;padding:0;margin:0;border:5px solid #000;
 		style = "style='" + positionTopLeftWidthHeight + paddingMarginBorder + "5px solid #000;";
+
+		// 生成一个div, 里面div, style = padding:0;margin:0;border:0;display:block;overflow:hidden;
+		// 嵌套一个talbe style = cellpadding='0' cellspacing='0'
 		html = "<div " + style + "display:block;'><div style='" + paddingMarginBorder + "0;display:block;overflow:hidden;'></div></div>" +
 			"<table " + style + "' cellpadding='0' cellspacing='0'>" +
 			"<tr><td></td></tr></table>";
 
 		container = document.createElement("div");
+		// padding:0;margin:0;border:0;visibility:hidden;width:0;height:0;position:static;top:0;margin-top:1px;
 		container.style.cssText = paddingMarginBorderVisibility + "width:0;height:0;position:static;top:0;margin-top:" + conMarginTop + "px";
+
+		// 把container加到body的第一个子元素前面
 		body.insertBefore( container, body.firstChild );
 
 		// Construct the test element
+		// 构建测试元素
 		div = document.createElement("div");
 		container.appendChild( div );
 
@@ -2141,15 +2191,31 @@ jQuery.support = (function() {
 		// display:none (it is still safe to use offsets if a parent element is
 		// hidden; don safety goggles and see bug #4512 for more information).
 		// (only IE 8 fails this test)
+
+		// 检查table cells当他们设置为display:none的时候是不是还有offsetWidth/Height
+		// 和他们还有没有其它可见的cells在一个row中
+		// 如果是这样的话，当元素隐藏(display:none)时offsetWidth/Height是不能用的。
+		// 假如一个父节点是hidden，他还是安全的
+		// 只有ie8会失败在这个test中
+		// td : padding:0;margin:0;border:0;display:none
 		div.innerHTML = "<table><tr><td style='" + paddingMarginBorder + "0;display:none'></td><td>t</td></tr></table>";
+
 		tds = div.getElementsByTagName( "td" );
+		// ie8下如果某一个td设置none,并且并排有非none的元素的话是可以取到值的，别的浏览器不可以
+		// 如果他上级设置none的话，也取不到
 		isSupported = ( tds[ 0 ].offsetHeight === 0 );
 
+		// 翻转显示状态
 		tds[ 0 ].style.display = "";
 		tds[ 1 ].style.display = "none";
 
 		// Check if empty table cells still have offsetWidth/Height
 		// (IE <= 8 fail this test)
+
+		// 有内容的td设置none，没内容的显示。
+		// 这时ie6/7 有值，别的没值
+
+		// 这里ie6/7/8 为false，其他为true
 		support.reliableHiddenOffsets = isSupported && ( tds[ 0 ].offsetHeight === 0 );
 
 		// Check if div with explicit width and no margin-right incorrectly
@@ -2157,54 +2223,101 @@ jQuery.support = (function() {
 		// info see bug #3333
 		// Fails in WebKit before Feb 2011 nightlies
 		// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+
+		// getComputedStyle 非ie方法 ie9开始支持
+		// 检查一个div有明确的width和margint-right:0
+		// 获取基于宽容器里他的mrgin-right值
+		// 在2011年2月以前的webkit会返回错误的margin-right
 		if ( window.getComputedStyle ) {
+
+			// 把里面的table删去
 			div.innerHTML = "";
+
+			// 创建新的div
+			// style = width:0;margin-right:0;
 			marginDiv = document.createElement( "div" );
 			marginDiv.style.width = "0";
 			marginDiv.style.marginRight = "0";
+
+			// style = width:2px
 			div.style.width = "2px";
 			div.appendChild( marginDiv );
+
 			support.reliableMarginRight =
+			// getComputedStyle 非ie获取最终渲染的样式
+			// 第一个参数是要获值的node, 多个节点则返回null
+			// 第二个是伪类(传值也没发现有什么不一样的)，通常用null
+			// 返回一个对象
+			// parseInt(val, 10) 转化为10进制
 				( parseInt( ( window.getComputedStyle( marginDiv, null ) || { marginRight: 0 } ).marginRight, 10 ) || 0 ) === 0;
 		}
 
+		// 有zoom属性的进行检测
+		// typeof值为string
+		// 这一段是检测inline-block是不是需要layout即zoom:1;触发
+		// ie6/7 需要
 		if ( typeof div.style.zoom !== "undefined" ) {
 			// Check if natively block-level elements act like inline-block
 			// elements when setting their display to 'inline' and giving
 			// them layout
 			// (IE < 8 does this)
+
+			// 检查当给块级元素设置display:inline和给他们layout(zoom)时
+			// 表现的是不是像display:inline-block一样
 			div.innerHTML = "";
 			div.style.width = div.style.padding = "1px";
 			div.style.border = 0;
 			div.style.overflow = "hidden";
 			div.style.display = "inline";
 			div.style.zoom = 1;
+
+			// ie6/7 为3px，其它都为2px(即padding的值)
+			// 即块级元素通过加display:inline;zoom:1;可以变为inline-block元素
 			support.inlineBlockNeedsLayout = ( div.offsetWidth === 3 );
 
 			// Check if elements with layout shrink-wrap their children
 			// (IE 6 does this)
+
+			// 检查收缩性容器的宽即内部元素宽于外面
 			div.style.display = "block";
+
+			// ie6中这里如果不设置为hidden都为3
+			// 原来就是在ie6里的width/height都是min-width/min-height
 			div.style.overflow = "visible";
 			div.innerHTML = "<div style='width:5px;'></div>";
+
+			// ie6为7px，其它都是3px
 			support.shrinkWrapBlocks = ( div.offsetWidth !== 3 );
 		}
 
+		// position:absolute;top:0;left:0;width:1px;height:1px;padding:0;margin:0;border:0;visibility:hidden; 
 		div.style.cssText = positionTopLeftWidthHeight + paddingMarginBorderVisibility;
 		div.innerHTML = html;
 
+		// 即inner 为 outer下的div
 		outer = div.firstChild;
 		inner = outer.firstChild;
 		td = outer.nextSibling.firstChild.firstChild;
 
 		offsetSupport = {
+
+			// ie8/opera中会把border-top:5px返回
+			// 这说明offsetTop算上offsetParent的border
 			doesNotAddBorder: ( inner.offsetTop !== 5 ),
+
+			// 在talbe为offsetParent时只有webkit不算talbe的border,其它都算 
+			// 如果offsetParent不是table的话，只有ie8/opera会算上offsetParent的border
 			doesAddBorderForTableAndCells: ( td.offsetTop === 5 )
 		};
 
+		// 设置固定定位并加top值
 		inner.style.position = "fixed";
 		inner.style.top = "20px";
 
 		// safari subtracts parent border width here which is 5px
+		// safari(以前) 减去父级元素的 border-width 5px, 所以就为15了
+		// 除了ie6不支持fixed外，其它都是20px
+		// 测试是不是支持fixed定位，主要是淘汰ie6
 		offsetSupport.fixedPosition = ( inner.offsetTop === 20 || inner.offsetTop === 15 );
 		inner.style.position = inner.style.top = "";
 
@@ -2212,33 +2325,50 @@ jQuery.support = (function() {
 		outer.style.position = "relative";
 
 		offsetSupport.subtractsBorderForOverflowNotVisible = ( inner.offsetTop === -5 );
+
+		// conMarginTop == 1
+		// 默认情况下ie6/7 margin:15px 10px, 而其它为8px。
+		// 默认在ie6/7 中会返回15px。这是因为在这里他们的offsetParent为html(跳过body)，而其它为body
 		offsetSupport.doesNotIncludeMarginInBodyOffset = ( body.offsetTop !== conMarginTop );
 
 		if ( window.getComputedStyle ) {
 			div.style.marginTop = "1%";
+
+			// 测试取出的值是不是为%(即会不会转化为px)
+			// 经测试都会转为px值, 所以全是true
 			support.pixelMargin = ( window.getComputedStyle( div, null ) || { marginTop: 0 } ).marginTop !== "1%";
 		}
 
+		// 靠，这个又不测试内容为什么加这个，后面直接就删了
 		if ( typeof container.style.zoom !== "undefined" ) {
 			container.style.zoom = 1;
 		}
 
+		// 删除元素且变量设为null,释放内存
 		body.removeChild( container );
 		marginDiv = div = container = null;
 
+		// 把offsetSupport合并到support上
 		jQuery.extend( support, offsetSupport );
 	});
-
+	
+	// 返回support
 	return support;
 })();
 
 
-
-
+/**************************
+	操作数据
+**************************/
+// 是否有大括号/中括号
+// 是否有大写字母
 var rbrace = /^(?:\{.*\}|\[.*\])$/,
 	rmultiDash = /([A-Z])/g;
 
+// 给jquery对象添加下列方法
 jQuery.extend({
+
+	// 缓存
 	cache: {},
 
 	// Please use with caution
@@ -2247,7 +2377,7 @@ jQuery.extend({
 
 	// Unique for each copy of jQuery on the page
 	// Non-digits removed to match rinlinejQuery
-	//独一无二的副本
+	// 独一无二的副本
 	expando: "jQuery" + ( jQuery.fn.jquery + Math.random() ).replace( /\D/g, "" ),
 
 	// The following elements throw uncatchable exceptions if you
@@ -2255,6 +2385,7 @@ jQuery.extend({
 	// 如果您试图添加 'expando'属性给他们，以下元素会抛出异常
 	noData: {
 		"embed": true,
+
 		// Ban all objects except for Flash (which handle expandos)
 		// 禁止所有的除flash以外的对象
 		"object": "clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
@@ -2270,8 +2401,11 @@ jQuery.extend({
 		// 如果不能接收数据则返回
 		if ( !jQuery.acceptData( elem ) ) {
 			return;
-		}
+		};
+
 		var privateCache, thisCache, ret,
+
+			// 随机的一个数值
 			internalKey = jQuery.expando,
 			getByName = typeof name === "string",
 
@@ -2294,20 +2428,26 @@ jQuery.extend({
 
 		// Avoid doing any more work than we need to when trying to get data on an
 		// object that has no data at all
-		// 避免做更多的不必要工作，当尝试在一个没有任何数据的对象上获取数据时
-		// 对象没有任何数据，直接返回 
+		// 当尝试在一个没有任何数据的对象上获取数据时, 避免做更多的不必要工作
+		// 对象没有任何数据，直接返回
+		if(name == 'xx') {
+			console.log(data);
+		}
 		if ( (!id || !cache[id] || (!isEvents && !pvt && !cache[id].data)) && getByName && data === undefined ) {
 			return;
-		}
+		};
 		//不存在就生成一个
 		if ( !id ) {
+
 			// Only DOM nodes need a new unique ID for each element since their data
 			// ends up in the global cache
+
 			// 如果是DOM元素则在元素上产生唯一的ID 并且以jQuery.expando 
 			// 为属性值为id保存在elem元素上，以便以后再根据jQuery.expando来查找ID
 			if ( isNode ) {
 				elem[ internalKey ] = id = ++jQuery.uuid;
 			} else {
+
 				// JS对象则直接使用jQuery.expando，既然是直接附加到对象上，又何必要id呢？
 				// 避免与其他属性冲突！
 				id = internalKey;
@@ -2325,12 +2465,11 @@ jQuery.extend({
 			if ( !isNode ) {
 				cache[ id ].toJSON = jQuery.noop;
 			}
-		}
+		};
 
 		// An object can be passed to jQuery.data instead of a key/value pair; this gets
 		// shallow copied over onto the existing cache
 		// 通过jQuery.data替代键/值对,浅复制到现有的缓存
-
 		if ( typeof name === "object" || typeof name === "function" ) {
 			if ( pvt ) {
 				cache[ id ] = jQuery.extend( cache[ id ], name );
@@ -2345,19 +2484,23 @@ jQuery.extend({
 		// jQuery data() is stored in a separate object inside the object's internal data
 		// cache in order to avoid key collisions between internal data and user-defined
 		// data.
-		// pvt为false则说明是对开的
+		// pvt为false则说明是对外的
 		// jQuery内部数据存在一个独立的对象（thisCache.data==thisCache[ internalKey ]）上
 		// 为了避免内部数据和用户定义数据冲突 
 		if ( !pvt ) {
+
+			// 对象里不存在data，则初始化
 			if ( !thisCache.data ) {
 				thisCache.data = {};
-			}
+			};
 
+			// 转变thisCache指向
 			thisCache = thisCache.data;
 		}
 
-		// 如果data不是undefined，表示传入了data参数，则存储data到name属性上 
+		// 存在的话，把值在到$.cache[id]下的data对象里
 		if ( data !== undefined ) {
+
 			// jQuery.camelCase( name )作用"-"转化为驼峰式
 			// 只有传入的name是字符串才会转换。所以最终保存下来的是key/value对;
 			thisCache[ jQuery.camelCase( name ) ] = data;
@@ -2383,6 +2526,7 @@ jQuery.extend({
 			if ( ret == null ) {
 
 				// Try to find the camelCased property
+				// 为什么不直接用？
 				ret = thisCache[ jQuery.camelCase( name ) ];
 			}
 		} else {
@@ -2495,13 +2639,15 @@ jQuery.extend({
 	},
 
 	// A method for determining if a DOM node can handle the data expando
-	// 如果一个DOM节点的可以处理 expando
-	// 是否能接收数据
+	// 检查一个节点是否能储存自定义数据
 	acceptData: function( elem ) {
 		if ( elem.nodeName ) {
-			// 的jQuery.noData查找元素节点名字
+
+			// 把元素节点的名字取出来
+			// 在jQuery.noDate查找，如为true则说明在这个里面
 			var match = jQuery.noData[ elem.nodeName.toLowerCase() ];
-			//如果能找到
+
+			// 因为object里有一种情况可以存数据的。所以这里主要是查找是不是这种
 			if ( match ) {
 				return !(match === true || elem.getAttribute("classid") !== match);
 			}
@@ -2542,32 +2688,49 @@ jQuery.fn.extend({
 		}
 
 		// Sets multiple values
+		// 设置多个values值
 		if ( typeof key === "object" ) {
 			return this.each(function() {
 				jQuery.data( this, key );
 			});
 		}
 
+		// 用"."拆分关键字, 返回最长为2的数组
+		// 如果没有"."则返回一个包含当前所有字符串的数组
 		parts = key.split( ".", 2 );
+
+		// 如果存在parts[1]， 则与"."拼接
 		parts[1] = parts[1] ? "." + parts[1] : "";
+
+		// 命名空间后面加!
 		part = parts[1] + "!";
 
 		return jQuery.access( this, function( value ) {
-
 			if ( value === undefined ) {
 				data = this.triggerHandler( "getData" + part, [ parts[0] ] );
 
 				// Try to fetch any internally stored data first
+				// 如果不传入data。。即获取值的操作
+				// 默认查找的是整个值(也包括命名空间)
+				// 如果找不到就去了就去了命名空间再找
 				if ( data === undefined && elem ) {
-					data = jQuery.data( elem, key );
-					data = dataAttr( elem, key, data );
-				}
 
+					// 查找先前是不是存过
+					data = jQuery.data( elem, key );
+
+					// 查找dom的 data=* 自定义属性
+					data = dataAttr( elem, key, data );
+				};
+
+
+				// 如果还找不到 且 有命名空间 则返回去掉命名空间的key的值
+				// 则否返回undefined
 				return data === undefined && parts[1] ?
 					this.data( parts[0] ) :
 					data;
 			}
 
+			// 设置为value即上一层的value
 			parts[1] = value;
 			this.each(function() {
 				var self = jQuery( this );
@@ -2589,25 +2752,42 @@ jQuery.fn.extend({
 function dataAttr( elem, key, data ) {
 	// If nothing was found internally, try to fetch any
 	// data from the HTML5 data-* attribute
+	// 如果内部没有找到，尝试从html5中的 data-* 属性上查找
+	// 必须是元素节点
 	if ( data === undefined && elem.nodeType === 1 ) {
 
+		// rmultiDash = /([A-Z])/g 
+		// 把驼峰式改为'-'试
 		var name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
 
+		// 获取元素相应属性值
 		data = elem.getAttribute( name );
 
+		// 如果是字符串
 		if ( typeof data === "string" ) {
 			try {
+
+				// 为什么不用 switch case ?
 				data = data === "true" ? true :
 				data === "false" ? false :
 				data === "null" ? null :
+
+				// 查看是不是数字, 是的话转化数字
 				jQuery.isNumeric( data ) ? +data :
+
+				// rbrace = /^(?:\{.*\}|\[.*\])$/ 有没有大括号或中括号
+				// 有的话就当json解析
 					rbrace.test( data ) ? jQuery.parseJSON( data ) :
+
+				// 否则就返回原值
 					data;
 			} catch( e ) {}
 
 			// Make sure we set the data so it isn't changed later
+			// 把这个值存起来
 			jQuery.data( elem, key, data );
 
+		// 否则返回undefined
 		} else {
 			data = undefined;
 		}
@@ -2617,18 +2797,23 @@ function dataAttr( elem, key, data ) {
 }
 
 // checks a cache object for emptiness
+// 检查一个缓存对象是不是空值
 function isEmptyDataObject( obj ) {
 	for ( var name in obj ) {
 
 		// if the public data object is empty, the private is still empty
+		// 如果name为data 且 他的值为空对象，则跳过本次循环
 		if ( name === "data" && jQuery.isEmptyObject( obj[name] ) ) {
 			continue;
 		}
+
+		// 如果name不是'toJSON' 则返回false
 		if ( name !== "toJSON" ) {
 			return false;
 		}
 	}
 
+	// 默认返回true
 	return true;
 }
 
@@ -3699,6 +3884,7 @@ jQuery.event = {
 
 	// Events that are safe to short-circuit if no handlers are attached.
 	// Native DOM events should not be added, they may have inline handlers.
+	// 用户自定义事件类弄
 	customEvent: {
 		"getData": true,
 		"setData": true,
@@ -3707,7 +3893,7 @@ jQuery.event = {
 
 	trigger: function( event, data, elem, onlyHandlers ) {
 		// Don't do events on text and comment nodes
-		// 文本节点 / 注释节点
+		// 文本节点 / 注释节点则返回
 		if ( elem && (elem.nodeType === 3 || elem.nodeType === 8) ) {
 			return;
 		}
@@ -3716,6 +3902,8 @@ jQuery.event = {
 		// 事件对象 || 类型
 		var type = event.type || event,
 			namespaces = [],
+
+			// exclusive 是否触发非命名空间事件
 			cache, exclusive, i, cur, old, ontype, special, handle, eventPath, bubbleType;
 
 		// focus/blur morphs to focusin/out; ensure we're not firing them right now
@@ -3739,24 +3927,37 @@ jQuery.event = {
 			// Exclusive events trigger only for the exact event (no namespaces)
 			// 去除!
 			type = type.slice(0, -1);
+
 			// 记录状态说明只触发非命名空间事件
 			exclusive = true;
 		}
 
 		//如果存在命名空间
 		if ( type.indexOf( "." ) >= 0 ) {
+
 			// Namespaced trigger; create a regexp to match event type in handle()
 			//拆分出数组方便后面获取事件
 			namespaces = type.split(".");
+
 			// 取出第一个即为事件类型 'click.xxx'
 			// 所以'xxx.click'是不允许的
 			type = namespaces.shift();
-			//排序下
+
+			//排序下, 支持多个命名空间
 			namespaces.sort();
 		}
 
 		// 对于一些特殊事件如"getData"或对于已经触发过的事件直接返回
+		// jQuery.event.global 为空对象
+		/*
+			customEvent: {
+				"getData": true,
+				"setData": true,
+				"changeData": true
+			}
+		*/
 		if ( (!elem || jQuery.event.customEvent[ type ]) && !jQuery.event.global[ type ] ) {
+
 			// jQuery没这个事件句柄,或者已经触发过了
 			// No jQuery handlers for this event type, and it can't have inline handlers
 			return;
